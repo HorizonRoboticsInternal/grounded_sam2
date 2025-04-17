@@ -1,4 +1,18 @@
-# segment-anything-2 real-time
+# Realtime SAM2.1 + Grounding DINO
+
+To install
+```bash
+pip install -e .                  # to install sam2
+cd grounding_dino
+pip install -e .                  # to build and install gdino
+pip install -r requirements.txt   # install gdino dependencies
+cd ..
+bash download_checkpoints.sh      # to download all checkpoints
+```
+
+TODO: update the README fully
+
+# segment-anything-2 real-time (old README)
 Run Segment Anything Model 2 on a **live video stream**
 
 ## News
