@@ -58,7 +58,7 @@ class SAM2CameraPredictor(SAM2Base):
                 np.array(img.convert("RGB").resize((image_size, image_size))) / 255.0
             )
             width, height = img.size
-        img = torch.from_numpy(img_np).permute(2, 0, 1).float()
+        img = torch.from_numpy(img_np).permute(2, 0, 1).float().cuda()
 
         img_mean = torch.tensor(img_mean, dtype=torch.float32)[:, None, None]
         img_std = torch.tensor(img_std, dtype=torch.float32)[:, None, None]

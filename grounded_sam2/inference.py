@@ -84,9 +84,9 @@ class GroundedSAM2Predictor:
         with torch.amp.autocast('cuda', dtype=torch.bfloat16):
             # process the box prompt for SAM 2
             h, w, _ = image_source.shape
-            boxes = boxes * torch.tensor([w, h, w, h])
-            input_boxes = box_convert(boxes=boxes, in_fmt="cxcywh", out_fmt="xyxy").numpy()
-            # confidences = confidences.numpy().tolist()
+            boxes = boxes.cuda() * torch.tensor([w, h, w, h])
+            input_boxes = box_convert(boxes=boxes, in_fmt="cxcywh",
+                                      out_fmt="xyxy").cpu().numpy()
             class_names = labels
 
         if self._verbosity >= 1:
@@ -156,32 +156,30 @@ class GroundedSAM2Predictor:
 
             out_obj_ids, out_mask_logits = self._query_sam2(frame)
 
+        out_masks = []
+        for out_mask_logit in out_mask_logits:
+            mask = (out_mask_logit > 0.0).squeeze()
+            mask = mask.cpu().numpy().astype(np.uint8) * 255
+            out_masks.append(mask)
+
         if self._verbosity >= 2:
             logger.info(f"Time for one pass: {time.perf_counter() - s}")
 
         if display is not None:
             width, height = frame.shape[:2][::-1]
-            all_mask = np.zeros((height, width, 1), dtype=np.uint8)
-            for i in range(0, len(out_obj_ids)):
-                out_mask = (out_mask_logits[i] > 0.0).permute(1, 2, 0).cpu().numpy().astype(
-                    np.uint8
-                ) * 255
-
-                all_mask = cv2.bitwise_or(all_mask, out_mask)
+            masked_frame = frame.copy()
+            for out_mask in out_masks:
                 # Convert the mask to greenish color
                 mask = np.zeros((height, width, 3), dtype=np.uint8)
-                mask[:, :, 1] = all_mask
+                mask[:, :, 1] = out_mask
+                masked_frame = cv2.addWeighted(masked_frame, 1, mask, 0.75, 0)
+                masked_frame = cv2.resize(masked_frame, display)
+                masked_frame = cv2.cvtColor(masked_frame, cv2.COLOR_RGB2BGR)
 
-                frame = cv2.addWeighted(frame, 1, mask, 0.75, 0)
-
-            cv2.imshow("Frame", cv2.cvtColor(cv2.resize(frame, display), cv2.COLOR_BGR2RGB))
+            cv2.imshow("Frame", masked_frame)
             cv2.waitKey(1)
 
-        output = {}
-        for name, mask in zip(self._class_names, out_mask_logits):
-            output[name] = mask[0].cpu().numpy()
-
-        return output
+        return {name: mask for name, mask in zip(self._class_names, out_masks)}
 
 
 if __name__ == "__main__":
