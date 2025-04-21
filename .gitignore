@@ -7,7 +7,7 @@ __pycache__/
 build/*
 _C.*
 outputs/*
-checkpoints/*.pt
+sam2_checkpoints/*.pt
 gdino_checkpoints/*.pth
 
 .idea

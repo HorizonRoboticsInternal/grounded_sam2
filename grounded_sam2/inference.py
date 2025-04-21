@@ -16,7 +16,7 @@ GSAM2_PATH = Path(__file__).parents[1]
 GDINO_CONFIG_PATH = str(GSAM2_PATH / "grounding_dino/groundingdino/config/GroundingDINO_SwinT_OGC.py")
 GDINO_CKPT_PATH = str(GSAM2_PATH / "gdino_checkpoints/groundingdino_swint_ogc.pth")
 SAM2_CONFIG_BASE_PATH: Path = Path("configs/sam2.1")  # hydra already has the base path
-SAM2_CKPT_BASE_PATH: Path = GSAM2_PATH / "checkpoints"
+SAM2_CKPT_BASE_PATH: Path = GSAM2_PATH / "sam2_checkpoints"
 
 
 if torch.cuda.get_device_properties(0).major >= 8:
